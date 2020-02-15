@@ -18,12 +18,11 @@ version = "0.6.10"
 [dependencies.cortex-m-semihosting]
 version = "0.3.3"
 
+[dependencies.shtcx]
+version = "0.1.0"
+
 [dependencies.panic-halt]
 version = "0.2.0"
-
-# Uncomment for the panic example.
-# panic-semihosting = "0.5.3"
-# panic-itm = "0.4.1"
 
 # this lets you use `cargo fix`!
 [[bin]]
@@ -35,3 +34,6 @@ bench = false
 codegen-units = 1 # better optimizations
 debug = true # symbols are nice and they don't increase the size on Flash
 lto = true # better optimizations
+
+[patch.crates-io]
+stm32l0xx-hal = { path = 'src/stm32l0xx-hal' }
