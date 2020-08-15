@@ -2,7 +2,6 @@
 #![no_main]
 
 extern crate panic_halt;
-extern crate shtcx;
 
 use cortex_m_rt::entry;
 
@@ -60,10 +59,6 @@ fn main() -> ! {
         
         // TODO: Turn off RF section
     }
-}
-
-fn calculate_tx_delay_ms() -> u32 {
-    1000;
 }
 
 fn get_humidity_temperature_measurement(sht: &mut Sht, delay: &mut Delay) -> Measurement {
