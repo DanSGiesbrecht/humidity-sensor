@@ -33,7 +33,8 @@ fn main() -> ! {
 
         delay.delay(2000.ms());
 
-        let _ = humidity_sensor.read(&mut delay);
+        let measurement = humidity_sensor.read(&mut delay);
+        let _ = convert_measurement_to_array(measurement);
 
         // TODO: Turn on RF section
         
@@ -45,4 +46,15 @@ fn main() -> ! {
         
         // TODO: Turn off RF section
     }
+}
+
+fn convert_measurement_to_array(measurement: shtcx::Measurement) -> [u8;8] {
+    let temperature = measurement.temperature.as_millidegrees_celsius();
+    let humidity = measurement.humidity.as_millipercent();
+
+    array_init::from_iter(
+        temperature.to_le_bytes().iter().cloned().chain(
+            humidity.to_le_bytes().iter().cloned()
+        )
+    ).unwrap()
 }

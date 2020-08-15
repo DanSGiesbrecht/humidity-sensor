@@ -25,6 +25,9 @@ branch = "master"
 [dependencies.panic-halt]
 version = "0.2.0"
 
+[dependencies.array-init]
+version = "0.1.1"
+
 # this lets you use `cargo fix`!
 [[bin]]
 name = "humidity-sensor"
