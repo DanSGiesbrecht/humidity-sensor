@@ -19,7 +19,8 @@ version = "0.6.10"
 version = "0.3.3"
 
 [dependencies.shtcx]
-version = "0.1.0"
+git = "https://github.com/dbrgn/shtcx-rs.git"
+branch = "master"
 
 [dependencies.panic-halt]
 version = "0.2.0"
