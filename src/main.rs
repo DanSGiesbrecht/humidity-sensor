@@ -18,7 +18,8 @@ use stm32l0xx_hal::{
 mod board_support;
 use board_support::{
     humidity_sensor::HumiditySensor,
-    rf_transmitter::RfTransmitter
+    rf_transmitter::RfTransmitter,
+    random_number_generator::RandomNumberGenerator
 };
 
 #[entry]
@@ -31,11 +32,10 @@ fn main() -> ! {
     let mut delay = Delay::new(core_periph.SYST, rcc.clocks);
     let mut humidity_sensor = HumiditySensor::new(gpiob.pb14, gpiob.pb13, periph.I2C2, &mut rcc);
     let mut diabled_transmitter = RfTransmitter::new();
+    let mut random_number_generator = RandomNumberGenerator::new();
 
     loop {
-        // TODO: Generate sleep time randomly
-
-        delay.delay(2000.ms());
+        delay.delay(((2000f32 * random_number_generator.get_random_number()) as u32).ms());
 
         let measurement = humidity_sensor.read(&mut delay);
 
