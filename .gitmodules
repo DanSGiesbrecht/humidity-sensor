@@ -1,3 +1,0 @@
-[submodule "src/stm32l0xx-hal"]
-	path = src/stm32l0xx-hal
-	url = git@github.com:DanSGiesbrecht/stm32l0xx-hal.git

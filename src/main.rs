@@ -6,64 +6,52 @@ extern crate panic_halt;
 use cortex_m_rt::entry;
 
 use stm32l0xx_hal::{
-    gpio::{
-        gpiob::{PB13, PB14},
-        Output,
-        OpenDrain
-    },
     pac::{
         Peripherals,
         CorePeripherals,
-        I2C2
     },
-    i2c::I2c,
-    prelude::*,
     rcc::Config,
+    prelude::*,
     delay::Delay
 };
 
-use shtcx::{ShtC3, shtc3, PowerMode, Measurement, LowPower};
-
-type Sht = ShtC3<I2c<I2C2, PB14<Output<OpenDrain>>, PB13<Output<OpenDrain>>>>;
+mod board_support;
+use board_support::{
+    humidity_sensor::HumiditySensor,
+    rf_transmitter::RfTransmitter,
+    random_number_generator::RandomNumberGenerator
+};
 
 #[entry]
 fn main() -> ! {
-    let periph = Peripherals::take().unwrap();
-    let core_periph = CorePeripherals::take().unwrap();
+    let (core_periph, periph) = (CorePeripherals::take().unwrap(), Peripherals::take().unwrap());
 
     let mut rcc = periph.RCC.freeze(Config::hsi16());
     let gpiob = periph.GPIOB.split(&mut rcc);
 
-    // Configure I2C for SHTC3
-    let sda = gpiob.pb14.into_open_drain_output();
-    let scl = gpiob.pb13.into_open_drain_output();
-    let i2c = periph.I2C2.i2c(sda, scl, 100.khz(), &mut rcc);
-
     let mut delay = Delay::new(core_periph.SYST, rcc.clocks);
-    let mut sht = shtc3(i2c);
+    let mut humidity_sensor = HumiditySensor::new(gpiob.pb14, gpiob.pb13, periph.I2C2, &mut rcc);
+    let mut diabled_transmitter = RfTransmitter::new();
+    let mut random_number_generator = RandomNumberGenerator::new();
 
     loop {
-        // TODO: Generate sleep time randomly
+        delay.delay(((2000f32 * random_number_generator.get_random_number()) as u32).ms());
 
-        delay.delay(2000.ms());
+        let measurement = humidity_sensor.read(&mut delay);
 
-        let _ = get_humidity_temperature_measurement(&mut sht, &mut delay);
-
-        // TODO: Turn on RF section
-        
-        // TODO: Sleep for requisite time for RF to get ready
-
-        // TODO: Load UART/DMA buffer from measurement
-        
-        // TODO: Sleep until buffer will be done sending
-        
-        // TODO: Turn off RF section
+        let mut enabled_transmitter = diabled_transmitter.enable(&mut delay);
+        enabled_transmitter.send(&convert_measurement_to_array(measurement));
+        diabled_transmitter = enabled_transmitter.disable(&mut delay);
     }
 }
 
-fn get_humidity_temperature_measurement(sht: &mut Sht, delay: &mut Delay) -> Measurement {
-    sht.wakeup(delay).unwrap();
-    let measurement = sht.measure(PowerMode::LowPower, delay).unwrap();
-    sht.sleep().unwrap();
-    measurement
+fn convert_measurement_to_array(measurement: shtcx::Measurement) -> [u8;8] {
+    let temperature = measurement.temperature.as_millidegrees_celsius();
+    let humidity = measurement.humidity.as_millipercent();
+
+    array_init::from_iter(
+        temperature.to_le_bytes().iter().cloned().chain(
+            humidity.to_le_bytes().iter().cloned()
+        )
+    ).unwrap()
 }
