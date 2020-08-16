@@ -1,4 +1,4 @@
-target extended-remote /dev/ttyACM0
+target extended-remote /dev/ttyBmpGdb
 set mem inaccessible-by-default off
 monitor tpwr enable
 shell sleep 0.25
