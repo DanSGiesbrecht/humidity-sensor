@@ -1,5 +1,5 @@
 [target.thumbv6m-none-eabi]
-runner = "sudo gdb-multiarch -x bmp.gdb"
+runner = "gdb-multiarch -x bmp.gdb"
 
 rustflags = [
   # LLD (shipped with the Rust toolchain) is used as the default linker
