@@ -31,7 +31,7 @@ fn main() -> ! {
 
     let mut delay = Delay::new(core_periph.SYST, rcc.clocks);
     let mut humidity_sensor = HumiditySensor::new(gpiob.pb14, gpiob.pb13, periph.I2C2, &mut rcc);
-    let mut diabled_transmitter = RfTransmitter::new();
+    let mut disabled_transmitter = RfTransmitter::new();
     let mut random_number_generator = RandomNumberGenerator::new();
 
     loop {
@@ -39,9 +39,9 @@ fn main() -> ! {
 
         let measurement = humidity_sensor.read(&mut delay);
 
-        let mut enabled_transmitter = diabled_transmitter.enable(&mut delay);
+        let mut enabled_transmitter = disabled_transmitter.enable(&mut delay);
         enabled_transmitter.send(&convert_measurement_to_array(measurement));
-        diabled_transmitter = enabled_transmitter.disable(&mut delay);
+        disabled_transmitter = enabled_transmitter.disable(&mut delay);
     }
 }
 
