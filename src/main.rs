@@ -27,11 +27,12 @@ fn main() -> ! {
 
     let mut rcc = periph.RCC.freeze(Config::hsi16());
     let gpiob = periph.GPIOB.split(&mut rcc);
+    let gpioa = periph.GPIOA.split(&mut rcc);
 
+    // TODO: Convert delay to non-blocking
     let mut delay = Delay::new(core_periph.SYST, rcc.clocks);
     let mut humidity_sensor = HumiditySensor::new(gpiob.pb14, gpiob.pb13, periph.I2C2, &mut rcc);
-    let mut disabled_transmitter = RfTransmitter::new();
-
+    let mut disabled_transmitter = RfTransmitter::new(gpioa.pa6);
     let mut random_number_generator = RandomNumberGenerator::new(
         humidity_sensor.read(&mut delay).to_combined_u64()
     );
