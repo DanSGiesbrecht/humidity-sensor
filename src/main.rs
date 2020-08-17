@@ -18,8 +18,10 @@ mod board_support;
 use board_support::{
     humidity_sensor::HumiditySensor,
     rf_transmitter::RfTransmitter,
-    random_number_generator::RandomNumberGenerator
 };
+
+mod utilities;
+use utilities::random_number_generator::RandomNumberGenerator;
 
 #[entry]
 fn main() -> ! {
