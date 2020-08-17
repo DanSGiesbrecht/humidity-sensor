@@ -25,6 +25,7 @@ use utilities::random_number_generator::RandomNumberGenerator;
 
 #[entry]
 fn main() -> ! {
+    // TODO: figure out unique ID (STM or SHT)
     let (core_periph, periph) = (CorePeripherals::take().unwrap(), Peripherals::take().unwrap());
 
     let mut rcc = periph.RCC.freeze(Config::hsi16());
@@ -34,7 +35,7 @@ fn main() -> ! {
     // TODO: Convert delay to non-blocking
     let mut delay = Delay::new(core_periph.SYST, rcc.clocks);
     let mut humidity_sensor = HumiditySensor::new(gpiob.pb14, gpiob.pb13, periph.I2C2, &mut rcc);
-    let mut disabled_transmitter = RfTransmitter::new(gpioa.pa6);
+    let mut disabled_transmitter = RfTransmitter::new(gpioa.pa6, gpioa.pa7, periph.SPI1, &mut rcc);
     let mut random_number_generator = RandomNumberGenerator::new(
         humidity_sensor.read(&mut delay).to_combined_u64()
     );
