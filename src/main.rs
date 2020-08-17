@@ -4,6 +4,9 @@
 extern crate panic_halt;
 
 use cortex_m_rt::entry;
+use core::convert::TryInto;
+use stm32_device_signature::device_id;
+
 use stm32l0xx_hal::{
     pac::{
         Peripherals,
@@ -45,9 +48,18 @@ fn main() -> ! {
         let measurement = humidity_sensor.read(&mut delay);
 
         let mut enabled_transmitter = disabled_transmitter.enable(&mut delay);
-        enabled_transmitter.send(&measurement.to_combined_array());
+        enabled_transmitter.send(&format_packet(get_serial_number(), measurement));
         disabled_transmitter = enabled_transmitter.disable(&mut delay);
     }
+}
+
+fn get_serial_number() -> u32 {
+    u32::from_le_bytes(device_id()[8..13].try_into().unwrap())
+}
+
+fn format_packet(serial: u32, measurement: shtcx::Measurement) -> [u8; 12] {
+    array_init::from_iter(serial.to_le_bytes().iter().cloned().chain(
+        measurement.to_combined_array().iter().cloned())).unwrap()
 }
 
 trait MeasurementExt {
