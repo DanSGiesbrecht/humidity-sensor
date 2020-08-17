@@ -4,8 +4,6 @@
 extern crate panic_halt;
 
 use cortex_m_rt::entry;
-use core::convert::TryInto;
-use stm32_device_signature::device_id;
 
 use stm32l0xx_hal::{
     pac::{
@@ -54,7 +52,11 @@ fn main() -> ! {
 }
 
 fn get_serial_number() -> u32 {
-    u32::from_le_bytes(device_id()[8..13].try_into().unwrap())
+    // Address from reference manual; not provided by the
+    // peripheral access crate because it's not in the SVD
+    const DEVICE_ID_PTR: *const u32 = 0x1FF8_0064 as _;
+
+    unsafe {*DEVICE_ID_PTR}
 }
 
 fn format_packet(serial: u32, measurement: shtcx::Measurement) -> [u8; 12] {
