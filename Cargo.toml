@@ -30,6 +30,9 @@ version = "0.7"
 default-features = false
 features = ["small_rng"]
 
+[dependencies.embedded-hal]
+version = "0.2.4"
+
 # this lets you use `cargo fix`!
 [[bin]]
 name = "humidity-sensor"

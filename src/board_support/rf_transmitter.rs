@@ -1,5 +1,4 @@
 use stm32l0xx_hal::{
-    delay::Delay,
     prelude::*,
     spi,
     spi::*,
@@ -14,6 +13,7 @@ use stm32l0xx_hal::{
     }
 };
 
+use embedded_hal::blocking::delay::DelayMs;
 use core::marker::PhantomData;
 
 pub struct RfTransmitter<ENABLED> {
@@ -43,11 +43,11 @@ impl RfTransmitter<Disabled> {
         transmitter
     }
 
-    pub fn enable(mut self, delay: &mut Delay) -> RfTransmitter<Enabled> {
+    pub fn enable<T: DelayMs<u32>>(mut self, delay: &mut T) -> RfTransmitter<Enabled> {
         self.enable.set_high().unwrap();
 
         // TODO Determine correct amount of time to wait for stabilization
-        delay.delay(100.ms());
+        delay.delay_ms(100);
 
         RfTransmitter{
             _marker:    PhantomData,
@@ -58,10 +58,10 @@ impl RfTransmitter<Disabled> {
 }
 
 impl RfTransmitter<Enabled> {
-    pub fn disable(mut self, delay: &mut Delay) -> RfTransmitter<Disabled> {
+    pub fn disable<T: DelayMs<u32>>(mut self, delay: &mut T) -> RfTransmitter<Disabled> {
         // TODO: Delay until ongoing transmission is complete rather
         // than just an arbitrary wait
-        delay.delay(100.ms());
+        delay.delay_ms(100);
 
         self.enable.set_low().unwrap();
 

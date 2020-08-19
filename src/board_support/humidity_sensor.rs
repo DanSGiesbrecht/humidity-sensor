@@ -10,10 +10,10 @@ use stm32l0xx_hal::{
     },
     rcc::Rcc,
     i2c::I2c,
-    delay::Delay,
     prelude::*,
 };
 
+use embedded_hal::blocking::delay::DelayUs;
 use shtcx::{ShtC3, shtc3, PowerMode, Measurement, LowPower};
 
 pub struct HumiditySensor {
@@ -27,7 +27,7 @@ impl HumiditySensor {
         HumiditySensor{sht: shtc3(i2c_peripheral.i2c(sda, scl, 100.khz(), rcc))}
     }
 
-    pub fn read(&mut self, delay: &mut Delay) -> Measurement {
+    pub fn read<T: DelayUs<u16>>(&mut self, delay: &mut T) -> Measurement {
         self.sht.wakeup(delay).unwrap();
         let measurement = self.sht.measure(PowerMode::LowPower, delay).unwrap();
         self.sht.sleep().unwrap();

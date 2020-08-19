@@ -5,13 +5,10 @@ extern crate panic_halt;
 
 use cortex_m_rt::entry;
 use stm32l0xx_hal::{
-    pac::{
-        Peripherals,
-        CorePeripherals,
-    },
+    pac::Peripherals,
+    pwr::PWR,
     rcc::Config,
     prelude::*,
-    delay::Delay
 };
 
 mod board_support;
@@ -21,19 +18,21 @@ use board_support::{
 };
 
 mod utilities;
-use utilities::random_number_generator::RandomNumberGenerator;
+use utilities::{
+    random_number_generator::RandomNumberGenerator,
+    sleep_delay::SleepDelay,
+};
 
 #[entry]
 fn main() -> ! {
     // TODO: figure out unique ID (STM or SHT)
-    let (core_periph, periph) = (CorePeripherals::take().unwrap(), Peripherals::take().unwrap());
+    let periph = Peripherals::take().unwrap();
 
     let mut rcc = periph.RCC.freeze(Config::hsi16());
     let gpiob = periph.GPIOB.split(&mut rcc);
     let gpioa = periph.GPIOA.split(&mut rcc);
 
-    // TODO: Convert delay to non-blocking
-    let mut delay = Delay::new(core_periph.SYST, rcc.clocks);
+    let mut delay = SleepDelay::new(periph.LPTIM, &mut PWR::new(periph.PWR, &mut rcc), &mut rcc);
     let mut humidity_sensor = HumiditySensor::new(gpiob.pb14, gpiob.pb13, periph.I2C2, &mut rcc);
     let mut disabled_transmitter = RfTransmitter::new(gpioa.pa6, gpioa.pa7, periph.SPI1, &mut rcc);
     let mut random_number_generator = RandomNumberGenerator::new(
