@@ -4,6 +4,7 @@
 extern crate panic_halt;
 
 use cortex_m_rt::entry;
+
 use stm32l0xx_hal::{
     pac::{
         Peripherals,
@@ -25,7 +26,6 @@ use utilities::random_number_generator::RandomNumberGenerator;
 
 #[entry]
 fn main() -> ! {
-    // TODO: figure out unique ID (STM or SHT)
     let (core_periph, periph) = (CorePeripherals::take().unwrap(), Peripherals::take().unwrap());
 
     let mut rcc = periph.RCC.freeze(Config::hsi16());
@@ -46,9 +46,22 @@ fn main() -> ! {
         let measurement = humidity_sensor.read(&mut delay);
 
         let mut enabled_transmitter = disabled_transmitter.enable(&mut delay);
-        enabled_transmitter.send(&measurement.to_combined_array());
+        enabled_transmitter.send(&format_packet(get_serial_number(), measurement));
         disabled_transmitter = enabled_transmitter.disable(&mut delay);
     }
+}
+
+fn get_serial_number() -> u32 {
+    // Address from reference manual; not provided by the
+    // peripheral access crate because it's not in the SVD
+    const DEVICE_ID_PTR: *const u32 = 0x1FF8_0064 as _;
+
+    unsafe {*DEVICE_ID_PTR}
+}
+
+fn format_packet(serial: u32, measurement: shtcx::Measurement) -> [u8; 12] {
+    array_init::from_iter(serial.to_le_bytes().iter().cloned().chain(
+        measurement.to_combined_array().iter().cloned())).unwrap()
 }
 
 trait MeasurementExt {
